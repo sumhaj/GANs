@@ -1,25 +1,22 @@
 import tensorflow as tf
 from GAN_loss_functions.GAN_loss_functions import GanLossFunctions
-from Vanilla_GAN.Vanilla_GAN import vanilla_discriminator, vanilla_generator
 from utils.constants import *
 from utils.utils import *
 import math
 import matplotlib.pyplot as plt
 
-
-class VanillaGAN:
+class DCGAN:
     def __init__(self, BATCH_SIZE = 32, loss_function = 'minimax_loss'):
-        super(VanillaGAN, self).__init__()
+        super(DCGAN, self).__init__()
         self.generator_loss_function, self.discriminator_loss_function = self.__loss_function(loss_function)
-        self.generator_model = vanilla_generator() 
-        self.discriminator_model = vanilla_discriminator()
-        self.mnist_dataset = load_mnist_dataset()
+        # self.generator_model = vanilla_generator() 
+        # self.discriminator_model = vanilla_discriminator()
+        self.celeba_dataset = load_celeba_dataset()
         self.batch_size = BATCH_SIZE
-        self.gen_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-04, beta_1 = 0.9, beta_2 = 0.999)
-        self.dis_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-04, beta_1 = 0.9, beta_2 = 0.999)
-        self.buffer_size = 60000
-        # self.random_noise = 100
-    
+        self.gen_optimizer = tf.keras.optimizers.Adam(learning_rate=2e-04, beta_1 = 0.9, beta_2 = 0.999)
+        self.dis_optimizer = tf.keras.optimizers.Adam(learning_rate=2e-04, beta_1 = 0.9, beta_2 = 0.999)
+        self.buffer_size = 202600
+
     def __loss_function(self, loss_function):
         if loss_function == 'minimax_loss':
             return GanLossFunctions().minimax_generator_loss, GanLossFunctions().minimax_discriminator_loss
@@ -48,9 +45,9 @@ class VanillaGAN:
             self.gen_optimizer.apply_gradients(zip(generator_gradients, self.generator_model.trainable_variables))
             self.dis_optimizer.apply_gradients(zip(discriminator_gradients, self.discriminator_model.trainable_variables))
             return generator_loss, discriminator_loss
-
-    def train(self, EPOCHS = 50):
-        (train_images, train_labels), (_, _) = self.mnist_dataset
+    
+    def train(self, EPOCHS=50):
+        (train_images, train_labels), (_, _) = self.celeba_dataset
         print(train_labels) # (60000, 28, 28) 
         normalize_and_reshape_image(train_images)
         total_images = train_images.shape[0]
@@ -68,17 +65,9 @@ class VanillaGAN:
                 batch=batch_number, total_batches=total_batches, gen_loss=generator_loss, dis_loss=discriminator_loss))
                 batch_number += 1
            
-            self.generator_model.save("saved_gan_models/saved_epoch_{}_vanilla_generator_model".format(epoch+1))
-            self.discriminator_model.save("saved_gan_models/saved_epoch_{}_vanilla_discriminator_model".format(epoch+1))
-            # self.generator_model.save_weights("saved_gan_models/saved_epoch_{}_vanilla_generator_model".format(epoch+1))
-            # self.discriminator_model.save_weights("saved_gan_models/saved_epoch_{}_vanilla_discriminator_model".format(epoch+1))
-            plot_and_save_images(epoch+1, "saved_gan_models/saved_epoch_{}_vanilla_generator_model".format(epoch+1), GANType().VANILLA)
+            self.generator_model.save("saved_gan_models/saved_epoch_{}_dcgan_generator_model".format(epoch+1))
+            self.discriminator_model.save("saved_gan_models/saved_epoch_{}_dcgan_discriminator_model".format(epoch+1))
+            plot_and_save_images(epoch+1, "saved_gan_models/saved_epoch_{}_dcgan_generator_model".format(epoch+1), GANType().VANILLA)
             
-        self.generator_model.save("saved_gan_models/saved_vanilla_generator_model")
-        self.discriminator_model.save("saved_gan_models/saved_vanilla_dsicriminator_model")
-        # self.generator_model.save_weights("saved_gan_models/saved_vanilla_generator_model")
-        # self.discriminator_model.save_weights("saved_gan_models/saved_vanilla_dsicriminator_model")
-                
-
-
-
+        self.generator_model.save("saved_gan_models/saved_dcgan_generator_model")
+        self.discriminator_model.save("saved_gan_models/saved_dcgan_dsicriminator_model")

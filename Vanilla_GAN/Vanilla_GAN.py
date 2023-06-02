@@ -11,21 +11,22 @@ class vanilla_block(layers.Layer):
         self.dense_layer = layers.Dense(output_dim)
         self.normalize = None
         self.dropout = None
+        if normalize == True:
+            self.normalize = layers.BatchNormalization()
+        
         if activation == None:
             self.activation_function = layers.Activation(activations.relu)
         else:
             self.activation_function = activation
-
-        if normalize == True:
-            self.normalize = layers.BatchNormalization()
+        
         if dropout != 0.0:
             self.dropout = layers.Dropout(rate=dropout)
 
     def call(self, input_features):
-        x = self.dense_layer(input_features)
-        output_features = self.activation_function(x)
+        output_features = self.dense_layer(input_features)
         if self.normalize:
             output_features = self.normalize(output_features)
+        output_features = self.activation_function(output_features)
         if self.dropout:
             output_features = self.dropout(output_features)
         return output_features
